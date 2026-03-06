@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subscription Intelligence — India OTT</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#f5f7fa;--surface:#ffffff;--surface2:#f0f4f8;--border:#e2e8f0;
+    --teal:#0891b2;--teal-dim:#0891b215;--red:#e11d48;--amber:#d97706;
+    --green:#059669;--blue:#2563eb;--purple:#7c3aed;
+    --text:#0f172a;--muted:#64748b;--card-shadow:0 2px 12px rgba(0,0,0,0.08);
+    --header-bg:rgba(255,255,255,0.95);
+    --exec-bg:linear-gradient(135deg,#e0f2fe,#f0f9ff);
+    --exec-border:rgba(8,145,178,0.2);
+    --banner-bg:linear-gradient(135deg,rgba(8,145,178,0.08),rgba(8,145,178,0.03));
+    --banner-border:rgba(8,145,178,0.2);
+    --chat-header-bg:linear-gradient(135deg,#e0f2fe,var(--surface));
+    --grid-color:rgba(8,145,178,0.04);
+    --teal-hover:#0e7490;
+  }
+  [data-theme="dark"] {
+    --bg:#0a0f1e;--surface:#111827;--surface2:#1a2235;--border:#1e2d45;
+    --teal:#00d4aa;--teal-dim:#00d4aa22;--red:#ff4d6d;--amber:#fbbf24;
+    --green:#34d399;--blue:#60a5fa;--purple:#a78bfa;
+    --text:#e2e8f0;--muted:#64748b;--card-shadow:0 4px 24px rgba(0,0,0,0.4);
+    --header-bg:rgba(10,15,30,0.95);
+    --exec-bg:linear-gradient(135deg,#0d2137,#0a1628);
+    --exec-border:rgba(0,212,170,0.2);
+    --banner-bg:linear-gradient(135deg,rgba(0,212,170,0.1),rgba(0,212,170,0.04));
+    --banner-border:rgba(0,212,170,0.25);
+    --chat-header-bg:linear-gradient(135deg,#0d2137,var(--surface));
+    --grid-color:rgba(0,212,170,0.03);
+    --teal-hover:#00f0c4;
+  }
+  /* Theme toggle button */
+  .theme-toggle{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--surface2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all 0.2s;flex-shrink:0;}
+  .theme-toggle:hover{border-color:var(--teal);transform:scale(1.05);}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+  body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--grid-color) 1px,transparent 1px),linear-gradient(90deg,var(--grid-color) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+
+  #loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:16px;transition:opacity 0.3s;}
+  .loader-ring{width:48px;height:48px;border:3px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  #loading p{color:var(--muted);font-size:0.85rem;font-family:'JetBrains Mono',monospace;}
+
+  header{position:sticky;top:0;z-index:100;background:var(--header-bg);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between;}
+  .logo{display:flex;align-items:center;gap:10px;}
+  .logo-icon{width:28px;height:28px;background:var(--teal);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+  .logo-text{font-family:'DM Serif Display',serif;font-size:1.1rem;}
+  .logo-text span{color:var(--teal);}
+  .header-right{display:flex;align-items:center;gap:12px;}
+  .data-badge{font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:4px 10px;border-radius:20px;}
+  .chat-btn{background:var(--teal);color:#ffffff;border:none;padding:7px 16px;border-radius:20px;font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.2s;}
+  .chat-btn:hover{background:var(--teal-hover);transform:translateY(-1px);}
+
+  .filters-bar{position:relative;z-index:10;padding:0.75rem 2rem;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:2rem;flex-wrap:wrap;}
+  .filter-group{display:flex;align-items:center;gap:8px;}
+  .filter-label{font-size:0.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;}
+  .filter-chips{display:flex;gap:6px;flex-wrap:wrap;}
+  .chip{padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all 0.15s;font-family:'DM Sans',sans-serif;}
+  .chip:hover:not(.disabled){border-color:var(--teal);color:var(--teal);}
+  .chip.active{background:var(--teal-dim);border-color:var(--teal);color:var(--teal);}
+  .chip.disabled{opacity:0.35;cursor:not-allowed;}
+  .date-range{font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--muted);background:var(--surface2);border:1px solid var(--border);padding:4px 10px;border-radius:6px;}
+
+  .tabs-bar{position:relative;z-index:9;background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;gap:0;overflow-x:auto;}
+  .tab-btn{padding:0.85rem 1.25rem;font-size:0.82rem;font-weight:500;color:var(--muted);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;white-space:nowrap;}
+  .tab-btn:hover{color:var(--text);}
+  .tab-btn.active{color:var(--teal);border-bottom-color:var(--teal);}
+
+  .tab-pane{display:none;}
+  .tab-pane.active{display:block;}
+
+  main{position:relative;z-index:1;padding:1.5rem 2rem;max-width:1400px;margin:0 auto;}
+
+  /* INSIGHT BANNER */
+  .insight-banner{background:var(--banner-bg);border:1px solid var(--banner-border);border-radius:12px;padding:0.9rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .winner-tag{background:var(--teal);color:#ffffff;font-size:0.7rem;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;}
+  .insight-line{font-size:0.88rem;color:var(--text);font-weight:500;}
+
+  /* EXEC SUMMARY */
+  .exec-card{background:var(--exec-bg);border:1px solid var(--exec-border);border-radius:16px;padding:1.5rem 2rem;margin-bottom:1.5rem;position:relative;overflow:hidden;}
+  .exec-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--teal);}
+  .exec-card-title{font-family:'DM Serif Display',serif;font-size:0.75rem;color:var(--teal);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.75rem;}
+  .exec-text{font-size:0.85rem;color:var(--text);line-height:1.8;white-space:pre-wrap;}
+
+  /* SECTION TITLE */
+  .section-title{font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--text);margin-bottom:1rem;display:flex;align-items:center;gap:10px;}
+  .section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+  /* INTEL GRID */
+  .intel-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;}
+  .intel-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;}
+  .intel-card-header{display:flex;align-items:center;gap:10px;margin-bottom:1rem;}
+  .intel-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+  .intel-card-title{font-weight:600;font-size:0.9rem;}
+  .intel-list{display:flex;flex-direction:column;gap:8px;}
+  .intel-item{display:flex;gap:10px;align-items:flex-start;}
+  .intel-bullet{width:6px;height:6px;border-radius:50%;margin-top:6px;flex-shrink:0;background:var(--teal);}
+  .intel-text{font-size:0.82rem;color:var(--muted);line-height:1.55;}
+  .intel-text strong{color:var(--text);}
+
+  /* RECOMMENDATIONS */
+  .rec-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;display:grid;grid-template-columns:48px 1fr auto;gap:1.25rem;align-items:start;margin-bottom:1rem;transition:border-color 0.2s;}
+  .rec-card:hover{border-color:var(--teal);}
+  .rec-number{font-family:'DM Serif Display',serif;font-size:2.2rem;color:var(--teal);opacity:0.35;line-height:1;text-align:center;}
+  .rec-title{font-weight:600;font-size:0.95rem;margin-bottom:0.5rem;}
+  .rec-desc{font-size:0.82rem;color:var(--muted);line-height:1.65;}
+  .rec-meta{display:flex;flex-direction:column;gap:6px;align-items:flex-end;min-width:110px;}
+  .rec-app-tag{font-size:0.68rem;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap;text-align:center;}
+  .rec-priority{font-size:0.68rem;padding:2px 8px;border-radius:10px;font-weight:600;text-align:center;}
+  .rec-impact{font-size:0.68rem;color:var(--muted);text-align:right;}
+
+  /* COMBINED CHART CARD */
+  .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;}
+  .chart-card-title{font-size:0.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:1.5rem;}
+  .chart-rows{display:flex;flex-direction:column;gap:20px;}
+
+  /* GROUPED BAR: one app, stacked segments */
+  .grouped-bar-row{display:grid;grid-template-columns:120px 1fr 80px;align-items:center;gap:14px;}
+  .grouped-bar-label{font-size:0.85rem;font-weight:600;}
+  .grouped-bar-track{height:32px;background:var(--surface2);border-radius:8px;overflow:hidden;display:flex;}
+  .grouped-bar-seg{height:100%;transition:width 1.2s cubic-bezier(0.4,0,0.2,1);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:600;color:rgba(255,255,255,0.85);overflow:hidden;white-space:nowrap;}
+  .grouped-bar-score{font-family:'JetBrains Mono',monospace;font-size:0.95rem;font-weight:500;text-align:right;}
+
+  /* CHART LEGEND */
+  .chart-legend{display:flex;gap:16px;margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border);flex-wrap:wrap;}
+  .legend-item{display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--muted);}
+  .legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+
+  /* SCORE CARDS */
+  .scorecard-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;}
+  .score-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.25rem;position:relative;overflow:hidden;transition:border-color 0.2s;}
+  .score-card:hover{border-color:var(--teal);}
+  .score-card-accent{position:absolute;bottom:0;left:0;right:0;height:3px;}
+  .score-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+  .score-app-name{font-weight:600;font-size:0.95rem;}
+  .score-badge{font-size:0.7rem;font-weight:600;padding:3px 10px;border-radius:20px;}
+  .big-score{font-family:'JetBrains Mono',monospace;font-size:2.8rem;font-weight:500;line-height:1;margin-bottom:0.2rem;}
+  .score-sublabel{font-size:0.72rem;color:var(--muted);margin-bottom:0.75rem;}
+  .score-of-total{font-size:0.75rem;color:var(--muted);margin-bottom:0.75rem;}
+  .score-signals{font-size:0.72rem;color:var(--muted);line-height:1.6;}
+  .score-signals strong{color:var(--text);font-weight:500;}
+
+  /* THEME GRID */
+  .theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;}
+  .theme-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;transition:all 0.2s;}
+  .theme-card:hover{border-color:var(--teal);transform:translateY(-2px);box-shadow:var(--card-shadow);}
+  .theme-header{display:flex;align-items:center;gap:10px;margin-bottom:1rem;}
+  .theme-emoji{width:36px;height:36px;background:var(--surface2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+  .theme-name{font-weight:600;font-size:0.88rem;}
+  .theme-sub{font-size:0.7rem;color:var(--muted);}
+  .theme-comparison{display:flex;flex-direction:column;gap:6px;}
+  .theme-app-row{display:flex;align-items:center;gap:8px;}
+  .app-pill{font-size:0.65rem;font-weight:600;width:52px;text-align:center;padding:2px 6px;border-radius:4px;flex-shrink:0;}
+  .theme-bar-bg{flex:1;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;}
+  .theme-bar-fill{height:100%;border-radius:4px;transition:width 1.2s cubic-bezier(0.4,0,0.2,1);}
+  .theme-count{font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--muted);width:32px;text-align:right;}
+
+  /* DEEP DIVE */
+  .dive-chart-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;}
+  .dive-chart-title{font-size:0.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:1.5rem;}
+  .dive-rows{display:flex;flex-direction:column;gap:18px;}
+  .dive-row{display:grid;grid-template-columns:120px 1fr;align-items:center;gap:14px;}
+  .dive-app-label{font-size:0.85rem;font-weight:600;}
+  /* Stacked bar for sentiment */
+  .sentiment-stack{height:28px;border-radius:6px;overflow:hidden;display:flex;}
+  .seg-neg{background:var(--red);transition:width 1.2s cubic-bezier(0.4,0,0.2,1);display:flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:600;color:rgba(255,255,255,0.9);overflow:hidden;}
+  .seg-neu{background:var(--amber);transition:width 1.2s cubic-bezier(0.4,0,0.2,1);display:flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:600;color:rgba(0,0,0,0.7);overflow:hidden;}
+  .seg-pos{background:var(--green);transition:width 1.2s cubic-bezier(0.4,0,0.2,1);display:flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:600;color:rgba(0,0,0,0.7);overflow:hidden;}
+  /* Single bar for price sensitivity */
+  .ps-bar-track{height:28px;background:var(--surface2);border-radius:6px;overflow:hidden;}
+  .ps-bar-fill{height:100%;border-radius:6px;transition:width 1.2s cubic-bezier(0.4,0,0.2,1);display:flex;align-items:center;padding-left:10px;font-size:0.72rem;font-weight:600;color:rgba(255,255,255,0.9);}
+
+  .total-label{font-size:0.72rem;color:var(--muted);margin-top:4px;text-align:right;}
+
+  /* CHAT */
+  .chat-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:none;align-items:flex-end;justify-content:flex-end;padding:80px 2rem 2rem;}
+  .chat-overlay.open{display:flex;}
+  .chat-panel{width:420px;height:580px;background:var(--surface);border:1px solid var(--border);border-radius:20px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.6);animation:slideUp 0.3s ease;}
+  @keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  .chat-header{padding:1rem 1.25rem;background:var(--chat-header-bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .chat-agent{display:flex;align-items:center;gap:10px;}
+  .agent-avatar{width:32px;height:32px;background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;}
+  .agent-info strong{display:block;font-size:0.85rem;font-weight:600;}
+  .agent-info span{font-size:0.7rem;color:var(--teal);}
+  .close-chat{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.2rem;padding:4px;}
+  .close-chat:hover{color:var(--text);}
+  .chat-messages{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:12px;}
+  .chat-messages::-webkit-scrollbar{width:4px;}
+  .chat-messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+  .msg{max-width:85%;padding:10px 14px;border-radius:14px;font-size:0.82rem;line-height:1.55;}
+  .msg.bot{background:var(--surface2);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:4px;}
+  .msg.user{background:var(--teal);color:#ffffff;align-self:flex-end;border-bottom-right-radius:4px;font-weight:500;}
+  .typing-dots{display:flex;gap:4px;align-items:center;}
+  .typing-dots span{width:6px;height:6px;background:var(--muted);border-radius:50%;animation:bounce 1.2s infinite;}
+  .typing-dots span:nth-child(2){animation-delay:0.2s;}
+  .typing-dots span:nth-child(3){animation-delay:0.4s;}
+  @keyframes bounce{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-6px);}}
+  .chat-suggestions{padding:0.5rem 1rem;display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid var(--border);}
+  .suggestion{font-size:0.7rem;padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;cursor:pointer;color:var(--muted);transition:all 0.15s;font-family:'DM Sans',sans-serif;}
+  .suggestion:hover{border-color:var(--teal);color:var(--teal);}
+  .chat-input-row{padding:0.75rem 1rem;display:flex;gap:8px;border-top:1px solid var(--border);}
+  .chat-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;transition:border-color 0.15s;}
+  .chat-input:focus{border-color:var(--teal);}
+  .chat-input::placeholder{color:var(--muted);}
+  .send-btn{width:36px;height:36px;background:var(--teal);border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all 0.15s;flex-shrink:0;}
+  .send-btn:hover{background:var(--teal-hover);}
+  .send-btn:disabled{opacity:0.5;cursor:not-allowed;}
+
+  .footer{position:relative;z-index:1;text-align:center;padding:1.5rem;color:var(--muted);font-size:0.72rem;border-top:1px solid var(--border);font-family:'JetBrains Mono',monospace;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  @media(max-width:900px){.scorecard-grid,.theme-grid,.intel-grid{grid-template-columns:1fr;}.rec-card{grid-template-columns:1fr;}.chat-panel{width:100%;}}
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="loader-ring"></div><p>Loading intelligence data...</p></div>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🔍</div>
+    <div class="logo-text">Subscription<span>Intel</span></div>
+  </div>
+  <div class="header-right">
+    <div class="data-badge" id="dataBadge">Loading...</div>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+    <button class="chat-btn" onclick="toggleChat()">💬 Ask CharuIntelBot</button>
+  </div>
+</header>
+
+<div class="filters-bar">
+  <div class="filter-group">
+    <span class="filter-label">Apps</span>
+    <div class="filter-chips" id="appChips"></div>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">Sources</span>
+    <div class="filter-chips">
+      <button class="chip active">Play Store</button>
+      <button class="chip disabled" title="Coming soon">App Store</button>
+      <button class="chip disabled" title="Coming soon">Reddit</button>
+      <button class="chip disabled" title="Coming soon">Google News</button>
+    </div>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">Period</span>
+    <div class="date-range" id="dateRange">—</div>
+  </div>
+</div>
+
+<div class="tabs-bar">
+  <button class="tab-btn active"        onclick="switchTab('executive',       this)">⚡ Executive Summary</button>
+  <button class="tab-btn"               onclick="switchTab('recommendations', this)">💡 Product Recommendations</button>
+  <button class="tab-btn"               onclick="switchTab('scores',          this)">📊 App Scores & Themes</button>
+</div>
+
+<main id="mainContent" style="opacity:0;transition:opacity 0.4s ease">
+
+  <!-- TAB 1: EXECUTIVE SUMMARY -->
+  <div class="tab-pane active" id="tab-executive">
+    <div class="insight-banner">
+      <span class="winner-tag">🏆 KEY INSIGHT</span>
+      <span class="insight-line" id="insightLine">Loading...</span>
+    </div>
+    <div class="exec-card">
+      <div class="exec-card-title">Strategic Overview — India OTT Market</div>
+      <div class="exec-text" id="execText">Loading...</div>
+    </div>
+    <div class="section-title">Intelligence Breakdown</div>
+    <div class="intel-grid" id="intelGrid"></div>
+  </div>
+
+  <!-- TAB 2: PRODUCT RECOMMENDATIONS -->
+  <div class="tab-pane" id="tab-recommendations">
+    <div class="insight-banner">
+      <span class="winner-tag">💡 PM LENS</span>
+      <span class="insight-line">Actionable recommendations based on India OTT review intelligence · filtered by active apps</span>
+    </div>
+    <div id="recList"></div>
+  </div>
+
+  <!-- TAB 3: APP SCORES & THEMES -->
+  <div class="tab-pane" id="tab-scores">
+    <div class="insight-banner">
+      <span class="winner-tag">🏆 KEY INSIGHT</span>
+      <span class="insight-line" id="insightLine2">Loading...</span>
+    </div>
+
+    <div class="section-title">Sentiment Analysis Scorecard</div>
+    <div class="chart-card">
+      <div class="chart-card-title">Sentiment Score — All Apps Compared (out of total reviews per app)</div>
+      <div class="chart-rows" id="sentChartRows"></div>
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Positive</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Neutral</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Negative</div>
+        <div style="margin-left:auto;font-size:0.7rem;color:var(--muted)">Positive score = positive reviews ÷ total reviews</div>
+      </div>
+    </div>
+
+    <div class="section-title">Price Sensitivity Scorecard</div>
+    <!-- Combined price sensitivity chart -->
+    <div class="chart-card">
+      <div class="chart-card-title">Price Sensitivity Score — All Apps Compared (out of total reviews per app)</div>
+      <div class="chart-rows" id="psChartRows"></div>
+      <div class="chart-legend">
+        <div id="psLegend"></div>
+        <div style="margin-left:auto;font-size:0.7rem;color:var(--muted)">Score = % of reviews mentioning ₹, expensive, cancel, subscription...</div>
+      </div>
+    </div>
+    <!-- Score cards -->
+    <div class="scorecard-grid" id="scorecardGrid"></div>
+
+    <div class="section-title">Theme Comparison</div>
+    <div class="theme-grid" id="themeGrid"></div>
+  </div>
+
+
+
+</main>
+
+<div class="footer" id="footer">Loading...</div>
+
+<!-- CHAT -->
+<div class="chat-overlay" id="chatOverlay" onclick="handleOverlayClick(event)">
+  <div class="chat-panel">
+    <div class="chat-header">
+      <div class="chat-agent">
+        <div class="agent-avatar">🦞</div>
+        <div class="agent-info">
+          <strong>CharuIntelBot</strong>
+          <span id="chatFilterContext">● Analysing all apps</span>
+        </div>
+      </div>
+      <button class="close-chat" onclick="toggleChat()">✕</button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="msg bot">Hey! I'm CharuIntelBot 👋 My answers update based on your active app filters. Try selecting specific apps and ask me to compare!</div>
+    </div>
+    <div class="chat-suggestions">
+      <button class="suggestion" onclick="sendSuggestion(this)">Why is Prime so negative?</button>
+      <button class="suggestion" onclick="sendSuggestion(this)">Compare Hotstar vs Netflix</button>
+      <button class="suggestion" onclick="sendSuggestion(this)">What's the India opportunity?</button>
+    </div>
+    <div class="chat-input-row">
+      <input class="chat-input" id="chatInput" placeholder="Ask about OTT trends in India..." onkeydown="if(event.key==='Enter')sendMessage()"/>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let reportData = null;
+  let activeApps = new Set();
+
+  const APP_CONFIG = {
+    netflix:  { label:'Netflix',      emoji:'🎬', color:'#fbbf24' },
+    prime:    { label:'Amazon Prime', emoji:'📦', color:'#ff4d6d' },
+    hotstar:  { label:'Hotstar',      emoji:'📺', color:'#34d399' }
+  };
+
+  const THEME_CONFIG = [
+    { key:'Pricing complaints',        emoji:'💰', label:'Pricing Complaints',      sub:'Users feel overcharged' },
+    { key:'Value-for-money praise',    emoji:'⭐', label:'Value for Money',          sub:"Users feel it's worth it" },
+    { key:'Sync/backup reliability',   emoji:'🔄', label:'Sync & Reliability',       sub:'Backup, progress, stability' },
+    { key:'Forced upgrade pressure',   emoji:'⬆️', label:'Forced Upgrade Pressure', sub:'Pushed to higher tiers' },
+    { key:'Privacy concerns',          emoji:'🔒', label:'Privacy Concerns',         sub:'Data, tracking, trust issues' },
+  ];
+
+  const INTEL_DATA = [
+    { title:'Competitive Positioning', icon:'🎯', bg:'#00d4aa22', items:[
+      '<strong>Hotstar wins on value</strong> — 121 praises vs Netflix\'s 4. India\'s affordability narrative belongs to Hotstar.',
+      '<strong>Prime has a pricing crisis</strong> — 38% of all reviews are pricing complaints. No other app comes close.',
+      '<strong>Netflix competes on quality</strong>, not price — users accept higher cost but reject forced tier upgrades.',
+      '<strong>Reliability is the next battlefield</strong> — both Netflix and Hotstar have sync issues. First to fix wins.'
+    ]},
+    { title:'India Market Dynamics', icon:'🇮🇳', bg:'#60a5fa22', items:[
+      '<strong>Price sensitivity is real</strong> — but unevenly distributed. Prime users are 2× more price-sensitive.',
+      '<strong>Value perception ≠ actual price</strong> — Hotstar charges similar to Prime but has 10× better value perception.',
+      '<strong>Bundling doesn\'t justify price</strong> — Prime\'s ecosystem bundle is not translating to value in India.',
+      '<strong>Mobile-first users dominate</strong> — sync, download, and multi-device reliability are India-specific pain points.'
+    ]},
+    { title:'Subscription Risk Signals', icon:'⚠️', bg:'#ff4d6d22', items:[
+      '<strong>Prime churn risk: HIGH</strong> — 78% negative + highest price sensitivity = active churn driver.',
+      '<strong>Netflix churn risk: MEDIUM</strong> — forced upgrade pressure pushes users to lower tiers or cancellation.',
+      '<strong>Hotstar churn risk: LOW</strong> — strong value lock-in, but technical issues could tip users away.',
+      '<strong>Switching cost is low</strong> — month-to-month subscriptions mean dissatisfaction converts to churn quickly.'
+    ]},
+    { title:'Opportunity Matrix', icon:'💡', bg:'#a78bfa22', items:[
+      '<strong>Micro-pricing tiers</strong> — weekly/biweekly plans for India\'s diverse payment cycles.',
+      '<strong>Technical reliability as moat</strong> — the app with best sync/download wins long-term stickiness.',
+      '<strong>Hotstar\'s path to dominance</strong> — fix reliability + maintain value = unbeatable in mass market.',
+      '<strong>Netflix\'s India playbook</strong> — stop upgrade pressure, add ₹199 mobile tier, win premium price-sensitive users.'
+    ]}
+  ];
+
+  const RECOMMENDATIONS = [
+    { app:'prime',   color:'#ff4d6d', label:'Amazon Prime', priority:'P0', impact:'High Impact',  title:'Introduce India-specific flexible pricing tiers',          desc:'With 114/300 reviews citing pricing as #1 complaint and a price sensitivity score of 0.20, Prime urgently needs mobile-only, ad-supported, and short-term plans. Consider ₹99/month mobile plan and ₹149 ad-supported tier tailored to India\'s economic diversity.' },
+    { app:'hotstar', color:'#34d399', label:'Hotstar',       priority:'P0', impact:'High Impact',  title:'Fix sync & reliability to protect value leadership',       desc:'Hotstar leads on value perception (121 praises) but has 49 sync/backup reliability complaints. A technical regression could erode its strongest competitive advantage. Prioritise watchlist sync, download reliability, and cross-device resume.' },
+    { app:'netflix', color:'#fbbf24', label:'Netflix',       priority:'P1', impact:'Medium Impact',title:'Reduce forced upgrade pressure with clearer tier value',    desc:'Netflix\'s #1 complaint isn\'t price — it\'s feeling forced to upgrade (13 mentions). Improve in-app communication about what each tier offers. Consider a "try premium for 7 days" feature to let users experience value before committing.' },
+    { app:'all',     color:'#60a5fa', label:'All Apps',      priority:'P1', impact:'Medium Impact',title:'Build a family plan that works for India\'s joint households',desc:'Family sharing patterns are emerging friction points. India\'s joint family structure means 4–6 users sharing one account is common. A dedicated India family plan (₹249–299/month, 5 screens, SD+HD mix) could unlock a new subscriber segment.' },
+    { app:'hotstar', color:'#34d399', label:'Hotstar',       priority:'P2', impact:'Medium Impact',title:'Leverage value-for-money narrative in marketing',            desc:'40%+ of Hotstar reviews organically praise value for money — earned brand equity, not advertised. Double down in acquisition campaigns targeting price-sensitive segments. Localised messaging ("India ka OTT") can reinforce the perception advantage.' },
+    { app:'prime',   color:'#ff4d6d', label:'Amazon Prime',  priority:'P2', impact:'Strategic',   title:'Decouple OTT from Prime bundle perception',                 desc:'Many Prime users feel they\'re paying for shopping delivery and getting video as afterthought. Consider a standalone Prime Video India brand with dedicated pricing, separate from the Prime shopping bundle, to improve perceived value for OTT-only users.' },
+  ];
+
+  async function loadData() {
+    try {
+      const res = await fetch('/outputs/report.json');
+      if (!res.ok) throw new Error();
+      reportData = await res.json();
+    } catch { reportData = getDemoData(); }
+
+    reportData.meta.apps.forEach(a => activeApps.add(a));
+
+    // Build filter chips
+    const chipsEl = document.getElementById('appChips');
+    reportData.meta.apps.forEach(app => {
+      const cfg = APP_CONFIG[app];
+      const btn = document.createElement('button');
+      btn.className = 'chip active';
+      btn.dataset.app = app;
+      btn.textContent = cfg.emoji + ' ' + cfg.label;
+      btn.onclick = () => {
+        if (activeApps.has(app)) { if (activeApps.size === 1) return; activeApps.delete(app); btn.classList.remove('active'); }
+        else { activeApps.add(app); btn.classList.add('active'); }
+        renderAll(); updateChatContext();
+      };
+      chipsEl.appendChild(btn);
+    });
+
+    const dr = reportData.meta.date_range;
+    document.getElementById('dateRange').textContent = `${dr.from} – ${dr.to}`;
+    document.getElementById('dataBadge').textContent = `${reportData.meta.total_reviews} reviews · Play Store India · ${dr.from} → ${dr.to}`;
+    const genAt = new Date(reportData.meta.generated_at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'});
+    document.getElementById('footer').textContent = `subscription-intel-agent · ${reportData.meta.total_reviews} reviews · Play Store India · generated ${genAt} IST`;
+
+    renderAll();
+    document.getElementById('loading').style.opacity = '0';
+    setTimeout(() => document.getElementById('loading').style.display = 'none', 300);
+    document.getElementById('mainContent').style.opacity = '1';
+  }
+
+  function renderAll() {
+    const apps = [...activeApps];
+    renderExecutive(apps);
+    renderRecommendations(apps);
+    renderScores(apps);
+  }
+
+  function getKeyInsight(apps) {
+    if (!reportData) return '...';
+    const themes = reportData.themes;
+    const ps = reportData.price_sensitivity;
+    if (apps.length === 1) {
+      const app = apps[0]; const cfg = APP_CONFIG[app]; const s = reportData.sentiment[app];
+      return `${cfg.emoji} ${cfg.label} — ${s.positive}% positive sentiment · price sensitivity: ${ps[app].toFixed(2)}`;
+    }
+    let maxPraise=0, winner='', maxRisk=0, riskApp='';
+    apps.forEach(a => {
+      const p = themes[a]?.['Value-for-money praise']||0; if(p>maxPraise){maxPraise=p;winner=a;}
+      const c = themes[a]?.['Pricing complaints']||0; if(c>maxRisk){maxRisk=c;riskApp=a;}
+    });
+    if (!winner || !riskApp) return 'Select apps above to see competitive insight';
+    const wCfg = APP_CONFIG[winner]; const rCfg = APP_CONFIG[riskApp];
+    return `${wCfg.emoji} ${wCfg.label} leads value perception (${maxPraise} praises) · ${rCfg.emoji} ${rCfg.label} highest pricing friction (${maxRisk} complaints)`;
+  }
+
+  // ── TAB 1: EXECUTIVE ──
+  function renderExecutive(apps) {
+    document.getElementById('insightLine').textContent = getKeyInsight(apps);
+    document.getElementById('execText').textContent = reportData.executive_summary;
+    document.getElementById('intelGrid').innerHTML = INTEL_DATA.map(card => `
+      <div class="intel-card">
+        <div class="intel-card-header"><div class="intel-icon" style="background:${card.bg}">${card.icon}</div><div class="intel-card-title">${card.title}</div></div>
+        <div class="intel-list">${card.items.map(item=>`<div class="intel-item"><div class="intel-bullet"></div><div class="intel-text">${item}</div></div>`).join('')}</div>
+      </div>`).join('');
+  }
+
+  // ── TAB 2: RECOMMENDATIONS ──
+  function renderRecommendations(apps) {
+    const filtered = RECOMMENDATIONS.filter(r => r.app === 'all' || apps.includes(r.app));
+    document.getElementById('recList').innerHTML = filtered.map((rec, i) => {
+      const pc = rec.priority==='P0'?'#ff4d6d':rec.priority==='P1'?'#fbbf24':'#34d399';
+      const pb = rec.priority==='P0'?'#ff4d6d22':rec.priority==='P1'?'#fbbf2422':'#34d39922';
+      return `<div class="rec-card">
+        <div class="rec-number">0${i+1}</div>
+        <div><div class="rec-title">${rec.title}</div><div class="rec-desc">${rec.desc}</div></div>
+        <div class="rec-meta">
+          <span class="rec-app-tag" style="background:${rec.color}22;color:${rec.color}">${rec.label}</span>
+          <span class="rec-priority" style="background:${pb};color:${pc}">${rec.priority}</span>
+          <span class="rec-impact">${rec.impact}</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── TAB 3: SCORES & THEMES ──
+  function renderScores(apps) {
+    document.getElementById('insightLine2').textContent = getKeyInsight(apps);
+
+    // ── Sentiment chart (same style as PS chart) ──
+    const sentRows = document.getElementById('sentChartRows');
+    sentRows.innerHTML = '';
+    apps.forEach(app => {
+      const cfg = APP_CONFIG[app];
+      const s = reportData.sentiment[app];
+      const posScore = (s.positive / 100).toFixed(2);
+      const pct = s.positive; // bar width = positive %
+      const scoreColor = s.positive > 50 ? 'var(--green)' : s.negative > 60 ? 'var(--red)' : 'var(--amber)';
+      const signals = `${s.negative}% negative · ${s.positive}% positive · ${s.neutral}% neutral`;
+      sentRows.innerHTML += `
+        <div class="grouped-bar-row">
+          <div class="grouped-bar-label">${cfg.emoji} ${cfg.label}</div>
+          <div>
+            <div class="grouped-bar-track">
+              <div class="grouped-bar-seg" style="width:0%;background:${scoreColor}" data-target="${pct}">
+                ${s.positive > 12 ? s.positive + '% positive' : ''}
+              </div>
+            </div>
+            <div class="total-label" style="color:var(--muted)">${signals} · out of ${s.total} reviews</div>
+          </div>
+          <div class="grouped-bar-score" style="color:${scoreColor}">${posScore}</div>
+        </div>`;
+    });
+
+    // Combined PS chart
+    const psRows = document.getElementById('psChartRows');
+    psRows.innerHTML = '';
+    apps.forEach(app => {
+      const cfg = APP_CONFIG[app];
+      const ps = reportData.price_sensitivity[app];
+      const total = reportData.sentiment[app].total;
+      const pct = Math.round((ps / 0.30) * 100);
+      const reviewsWithSignal = Math.round(ps * total);
+      psRows.innerHTML += `
+        <div class="grouped-bar-row">
+          <div class="grouped-bar-label">${cfg.emoji} ${cfg.label}</div>
+          <div>
+            <div class="grouped-bar-track">
+              <div class="grouped-bar-seg" style="width:0%;background:${cfg.color}" data-target="${pct}">
+                ${reviewsWithSignal} reviews
+              </div>
+            </div>
+            <div class="total-label">out of ${total} total reviews</div>
+          </div>
+          <div class="grouped-bar-score" style="color:${ps>=0.2?'var(--red)':'var(--green)'}">${ps.toFixed(2)}${ps>=0.2?' 🔥':''}</div>
+        </div>`;
+    });
+    // Legend
+    document.getElementById('psLegend').innerHTML = `<div style="display:flex;gap:12px;">${apps.map(a=>`<div class="legend-item"><div class="legend-dot" style="background:${APP_CONFIG[a].color}"></div>${APP_CONFIG[a].label}</div>`).join('')}</div>`;
+
+    // Score cards
+    const sg = document.getElementById('scorecardGrid');
+    sg.innerHTML = '';
+    sg.style.gridTemplateColumns = apps.length===1?'1fr':apps.length===2?'repeat(2,1fr)':'repeat(3,1fr)';
+    apps.forEach(app => {
+      const cfg = APP_CONFIG[app]; const ps = reportData.price_sensitivity[app];
+      const s = reportData.sentiment[app];
+      const isHigh=ps>=0.2; const isMed=ps>0.10&&ps<0.2;
+      const sc = isHigh?'var(--red)':isMed?'var(--amber)':'var(--green)';
+      const rl = isHigh?'HIGH RISK':isMed?'MEDIUM':'LOW RISK';
+      const rb = isHigh?'#ff4d6d22':isMed?'#fbbf2422':'#34d39922';
+      const rc = isHigh?'#ff4d6d':isMed?'#fbbf24':'#34d399';
+      const signals = app==='prime'?'₹, subscription, cancel, too much':app==='netflix'?'subscription, cancel, expensive, plan':'subscription, too much, plan';
+      const reviewsWithPS = Math.round(ps * s.total);
+      sg.innerHTML += `
+        <div class="score-card" style="border-color:${cfg.color}44">
+          <div class="score-card-accent" style="background:${cfg.color};opacity:0.6;"></div>
+          <div class="score-card-header">
+            <span class="score-app-name">${cfg.emoji} ${cfg.label}</span>
+            <span class="score-badge" style="background:${rb};color:${rc}">${rl}</span>
+          </div>
+          <div class="big-score" style="color:${sc}">${ps.toFixed(2)}</div>
+          <div class="score-sublabel">price sensitivity score</div>
+          <div class="score-of-total" style="color:${sc}">${reviewsWithPS} of ${s.total} reviews mention price signals</div>
+          <div class="score-signals"><strong>Sentiment:</strong> ${s.positive}% positive · ${s.negative}% negative<br><strong>Top signals:</strong> ${signals}</div>
+        </div>`;
+    });
+
+    // Theme grid
+    const tg = document.getElementById('themeGrid');
+    tg.innerHTML = '';
+    THEME_CONFIG.forEach(theme => {
+      const counts = apps.map(app => ({ app, count:reportData.themes[app]?.[theme.key]||0 })).sort((a,b)=>b.count-a.count);
+      const maxCount = Math.max(...counts.map(c=>c.count),1);
+      const rows = counts.map(({app,count}) => {
+        const cfg=APP_CONFIG[app]; const pct=Math.round(count/maxCount*100);
+        const isW=count===maxCount&&count>0&&counts.length>1;
+        return `<div class="theme-app-row">
+          <span class="app-pill" style="background:${cfg.color}22;color:${cfg.color}">${cfg.label.split(' ')[0]}</span>
+          <div class="theme-bar-bg"><div class="theme-bar-fill" style="width:0%;background:${cfg.color}" data-target="${pct}"></div></div>
+          <span class="theme-count">${count}${isW?' 🏆':''}</span>
+        </div>`;
+      }).join('');
+      tg.innerHTML += `
+        <div class="theme-card">
+          <div class="theme-header"><div class="theme-emoji">${theme.emoji}</div><div><div class="theme-name">${theme.label}</div><div class="theme-sub">${theme.sub}</div></div></div>
+          <div class="theme-comparison">${rows}</div>
+        </div>`;
+    });
+    tg.innerHTML += `
+      <div class="theme-card" style="border:1px dashed var(--border);opacity:0.5">
+        <div class="theme-header"><div class="theme-emoji">🚧</div><div><div class="theme-name">More Themes Coming</div><div class="theme-sub">Family sharing · Content quality · Login issues</div></div></div>
+        <div style="font-size:0.75rem;color:var(--muted);line-height:1.6;margin-top:0.5rem">Additional themes as more sources are added — Reddit, App Store, Google News.</div>
+      </div>`;
+
+    animateBars();
+  }
+
+
+  function animateBars() {
+    requestAnimationFrame(() => setTimeout(() => {
+      document.querySelectorAll('[data-target]').forEach(el => { el.style.width = el.dataset.target + '%'; });
+    }, 150));
+  }
+
+  // ── TABS ──
+  function switchTab(id, btn) {
+    document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('tab-'+id).classList.add('active');
+    btn.classList.add('active');
+    setTimeout(animateBars, 100);
+  }
+
+  // ── CHAT ──
+  function toggleChat(){document.getElementById('chatOverlay').classList.toggle('open');updateChatContext();}
+  function handleOverlayClick(e){if(e.target===document.getElementById('chatOverlay'))toggleChat();}
+  function updateChatContext(){document.getElementById('chatFilterContext').textContent='● Analysing: '+[...activeApps].map(a=>APP_CONFIG[a].label).join(', ');}
+  function sendSuggestion(el){document.getElementById('chatInput').value=el.textContent;sendMessage();}
+  async function sendMessage(){
+    const input=document.getElementById('chatInput'), sendBtn=document.getElementById('sendBtn');
+    const text=input.value.trim(); if(!text)return;
+    const msgs=document.getElementById('chatMessages');
+    const um=document.createElement('div'); um.className='msg user'; um.textContent=text; msgs.appendChild(um);
+    input.value=''; input.disabled=true; sendBtn.disabled=true;
+    const typ=document.createElement('div'); typ.className='msg bot'; typ.innerHTML='<div class="typing-dots"><span></span><span></span><span></span></div>'; msgs.appendChild(typ);
+    msgs.scrollTop=msgs.scrollHeight;
+    try{
+      const res=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,apps:[...activeApps]})});
+      const data=await res.json(); msgs.removeChild(typ);
+      const bm=document.createElement('div'); bm.className='msg bot'; bm.textContent=data.reply||'No response.'; msgs.appendChild(bm);
+    }catch{
+      msgs.removeChild(typ);
+      const em=document.createElement('div'); em.className='msg bot'; em.textContent='Could not connect. Make sure python3 server.py is running on port 5001.'; msgs.appendChild(em);
+    }
+    input.disabled=false; sendBtn.disabled=false; input.focus(); msgs.scrollTop=msgs.scrollHeight;
+  }
+
+  function getDemoData(){return{meta:{total_reviews:900,apps:['netflix','prime','hotstar'],sources:['playstore'],date_range:{from:'2026-01-01',to:'2026-03-05'},generated_at:new Date().toISOString()},sentiment:{netflix:{positive:47,neutral:11,negative:42,total:301},prime:{positive:19,neutral:3,negative:78,total:300},hotstar:{positive:55,neutral:13,negative:32,total:300}},price_sensitivity:{netflix:0.10,prime:0.20,hotstar:0.10},themes:{netflix:{'Pricing complaints':28,'Value-for-money praise':4,'Sync/backup reliability':19,'Forced upgrade pressure':13,'Privacy concerns':10},prime:{'Pricing complaints':114,'Value-for-money praise':5,'Sync/backup reliability':6,'Forced upgrade pressure':5,'Privacy concerns':6},hotstar:{'Pricing complaints':37,'Value-for-money praise':121,'Sync/backup reliability':49,'Forced upgrade pressure':2,'Privacy concerns':1}},executive_summary:"Amazon Prime faces a pricing perception crisis in India — 114 of 300 reviews are purely pricing complaints, giving it the highest price sensitivity score (0.20) and 78% negative sentiment.\n\nHotstar dominates the value narrative with 121 value-for-money praises and 55% positive sentiment, resonating strongly with India's affordability expectations.\n\nNetflix's core issue is forced upgrade pressure (13 mentions), not pricing — users feel pushed into higher tiers without clear incremental value.\n\nOpportunity: The player that combines Hotstar's affordability narrative with better sync/reliability and flexible pricing tiers will win India's mass market."};}
+
+  // ── THEME TOGGLE ──
+  function toggleTheme() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const newTheme = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    document.getElementById('themeToggle').textContent = newTheme === 'dark' ? '☀️' : '🌙';
+    localStorage.setItem('si-theme', newTheme);
+  }
+
+  // Apply saved theme before render
+  (function() {
+    const saved = localStorage.getItem('si-theme') || 'light';
+    if (saved === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.getElementById('themeToggle').textContent = '☀️';
+    }
+  })();
+
+  loadData();
+</script>
+</body>
+</html>
