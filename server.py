@@ -70,7 +70,9 @@ Guidelines:
         )
         return jsonify({'reply': response.text})
     except Exception as e:
-        return jsonify({'error': str(e), 'reply': 'Sorry, I hit an API error. Try again in a moment.'}), 500
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e), 'reply': f'Error: {str(e)}'}), 500
 
 
 if __name__ == '__main__':
