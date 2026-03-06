@@ -16,7 +16,16 @@ app = Flask(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 REPORT_PATH = os.path.join(BASE_DIR, 'outputs', 'report.json')
 
-client = genai.Client(api_key=os.environ.get('GOOGLE_API_KEY'))
+client = None
+
+def get_client():
+    global client
+    if client is None:
+        api_key = os.environ.get('GOOGLE_API_KEY')
+        if not api_key:
+            return None
+        client = genai.Client(api_key=api_key)
+    return client
 
 @app.route('/')
 def index():
@@ -63,8 +72,11 @@ Guidelines:
 - Never make up numbers — only use data from the context above
 """
     try:
-        response = client.models.generate_content(
-            model='gemini-2.0-flash',
+        c = get_client()
+        if not c:
+            return jsonify({'reply': '🔑 CharuIntelBot is offline — no API key configured. The dashboard data is fully functional!'})
+        response = c.models.generate_content(
+            model='gemini-1.5-flash',
             contents=user_message,
             config={'system_instruction': system_prompt}
         )
